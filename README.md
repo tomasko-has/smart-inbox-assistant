@@ -132,3 +132,14 @@ The system is intentionally easy to customize:
 - WebSockets / Server-Sent Events instead of polling
 - Auto-drafted reply suggestions for each message
 - Deployment (Render / Railway) with a public demo URL
+
+- **Real email trigger (optional)** — the server can watch a Gmail
+  mailbox via IMAP and process every incoming email automatically
+
+### Optional: real email trigger
+
+1. Enable 2-Step Verification on the Gmail account
+2. Create an App Password (Google Account → Security → App passwords)
+3. Fill in the `IMAP_*` variables in `.env` (see `.env.example`)
+4. Restart the server — incoming emails now appear on the dashboard
+   within ~30 seconds

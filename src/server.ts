@@ -3,12 +3,14 @@
 // Receives incoming messages (simulated customer inquiries) via HTTP webhook,
 // hands them to the AI module, stores the result and returns it.
 // Also serves the dashboard frontend from /public.
+// Optionally watches a real IMAP mailbox (see mailWatcher.ts).
 
 import "dotenv/config";
 import express from "express";
 import type { Request, Response } from "express";
 import { processMessage } from "./ai.js";
 import { initStore, addMessage, getAllMessages } from "./store.js";
+import { startMailWatcher } from "./mailWatcher.js";
 import type { IncomingMessage } from "./types.js";
 
 const app = express();
@@ -62,11 +64,13 @@ app.get("/api/messages", (req: Request, res: Response) => {
   res.json(getAllMessages());
 });
 
-// Start: load persisted data first, then begin accepting requests
+// Start: load persisted data first, then begin accepting requests,
+// then (optionally) start watching the real mailbox
 async function start(): Promise<void> {
   await initStore();
   app.listen(PORT, () => {
     console.log(`Smart Inbox Assistant running on http://localhost:${PORT}`);
+    startMailWatcher(`http://localhost:${PORT}/api/messages`);
   });
 }
 

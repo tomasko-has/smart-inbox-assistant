@@ -1,5 +1,7 @@
 # Smart Inbox Assistant
 
+**Live demo:** https://smart-inbox-assistant.onrender.com
+
 AI-powered inbox automation. Incoming customer messages are automatically
 summarized, categorized, prioritized and displayed in a live dashboard —
 no human triage needed.

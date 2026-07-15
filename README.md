@@ -24,6 +24,9 @@ teams that prefer no-code tools:
 Same pattern, two implementations — custom code for full control,
 Make for rapid deployment and easy client handoff.
 
+![Dashboard screenshot](docs/siaMake1.png)
+![Dashboard screenshot](docs/siaMake2.png)
+
 ## The problem it solves
 
 Every business receives a constant stream of inquiries: orders, complaints,

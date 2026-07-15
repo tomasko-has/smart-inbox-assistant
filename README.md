@@ -6,7 +6,7 @@ AI-powered inbox automation. Incoming customer messages are automatically
 summarized, categorized, prioritized and displayed in a live dashboard —
 no human triage needed.
 
-![Dashboard screenshot](docs/dashboard.png)
+![Dashboard screenshot](docs/sia.png)
 
 ## The problem it solves
 

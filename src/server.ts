@@ -7,10 +7,11 @@
 
 import "dotenv/config";
 import express from "express";
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { processMessage } from "./ai.js";
 import { initStore, addMessage, getAllMessages } from "./store.js";
 import { startMailWatcher } from "./mailWatcher.js";
+import { checkDailyLimit, recordProcessedMessage } from "./rateLimit.js";
 import type { IncomingMessage } from "./types.js";
 
 const app = express();
@@ -21,19 +22,49 @@ app.use(express.json());
 // Serve the dashboard (static frontend) from the /public folder
 app.use(express.static("public"));
 
-// Health check — quickly verify the server is running
+// --- Webhook authentication ---
+// If WEBHOOK_TOKEN is set (production), every POST must carry it in the
+// "x-webhook-token" header. If it's not set (local development), the
+// check is skipped. GET endpoints stay public — the dashboard is a demo.
+function requireWebhookToken(req: Request, res: Response, next: NextFunction): void {
+  const expected = process.env.WEBHOOK_TOKEN;
+  if (!expected) {
+    next(); // no token configured -> open mode (local dev)
+    return;
+  }
+
+  if (req.header("x-webhook-token") !== expected) {
+    res.status(401).json({ error: "Invalid or missing webhook token." });
+    return;
+  }
+
+  next();
+}
+
+// Health check — quickly verify the server is running (also used by uptime pings)
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
 // Main trigger endpoint: a new incoming message arrives here
-app.post("/api/messages", async (req: Request, res: Response) => {
+app.post("/api/messages", requireWebhookToken, async (req: Request, res: Response) => {
   const { from, subject, body } = req.body as IncomingMessage;
 
   // Cheap validation BEFORE any expensive AI call
   if (!body || typeof body !== "string" || body.trim() === "") {
     res.status(400).json({
       error: "Field 'body' is required and must be a non-empty string.",
+    });
+    return;
+  }
+
+  // Daily cap — the last gate before spending money on an AI call
+  const { allowed, used, limit } = checkDailyLimit();
+  if (!allowed) {
+    res.status(429).json({
+      error: "Daily message limit reached. Try again tomorrow.",
+      used,
+      limit,
     });
     return;
   }
@@ -45,6 +76,7 @@ app.post("/api/messages", async (req: Request, res: Response) => {
       ...(subject !== undefined ? { subject } : {}),
     };
 
+    recordProcessedMessage();
     const processed = await processMessage(incoming);
     const stored = await addMessage(incoming, processed);
 

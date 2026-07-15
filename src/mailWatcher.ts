@@ -31,16 +31,22 @@ function getMailConfig(): MailConfig | null {
   };
 }
 
-// Forward one email to the webhook — same path as any other source
+// Forward one email to the webhook — same path as any other source.
+// Includes the webhook token when configured (production).
 async function forwardToWebhook(
   apiUrl: string,
   from: string | undefined,
   subject: string | undefined,
   body: string
 ): Promise<void> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (process.env.WEBHOOK_TOKEN) {
+    headers["x-webhook-token"] = process.env.WEBHOOK_TOKEN;
+  }
+
   const res = await fetch(apiUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ from, subject, body }),
   });
 

@@ -8,6 +8,22 @@ no human triage needed.
 
 ![Dashboard screenshot](docs/sia.png)
 
+
+## No-code version (Make)
+
+The same automation also exists as a Make (Integromat) scenario, for
+teams that prefer no-code tools:
+
+**Mailhook trigger → Claude (same system prompt) → Google Sheets → Slack alert**
+
+- Incoming emails hit a Make mailhook address and trigger the scenario instantly
+- Claude analyzes each message using the identical system prompt as the code version
+- Every processed message is appended as a row to a Google Sheet
+- Messages classified as High priority additionally trigger an instant Slack notification (filtered route)
+
+Same pattern, two implementations — custom code for full control,
+Make for rapid deployment and easy client handoff.
+
 ## The problem it solves
 
 Every business receives a constant stream of inquiries: orders, complaints,
